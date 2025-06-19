@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link
+		href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+		rel="stylesheet">
+	<title>reveal.js</title>
+
+	<link rel="stylesheet" href="dist/reset.css">
+	<link rel="stylesheet" href="dist/reveal.css">
+	<link rel="stylesheet" href="dist/theme/dracula.css">
+
+
+	<!-- Theme used for syntax highlighted code -->
+	<link rel="stylesheet" href="plugin/highlight/monokai.css">
+	</head>
+
+<body>
+	<div class="reveal">
+		<div class="slides">
+			<!-- slide 1 -->
+			<section>
+				<h2 style="font-size: 50px !important; font-weight: 800; text-wrap: auto !important;" class="r-fit-text">
+					<div style="font-size: 50px !important;    text-wrap: auto;">Optimizing
+						Navigation Performance
+						in Web Apps</div>
+				</h2>	
+			</section>
+			
+			<section data-markdown>
+				<textarea data-template>
+																																																									### The Anatomy of Slow Web Applications		
+																																																									 - The Loading Waterfall Problem
+																																																									 - Client-Side Data Fetching Overhead
+																																																									 - The JavaScript Bundle Problem
+																																																
+																																											</textarea>
+			</section>
+			
+			
+			<!-- slide 2 -->
+			<section style="font-size: 20px !important;">
+				<h2>The Loading Waterfall Problem</h2>
+				<img src="waterfall.webp" alt="Waterfall representing sequential loading" data-preview-image
+					style="width:70%;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,0.2);margin-bottom:1em;">
+				<ul>
+					<li><strong>What is it?</strong> Sequential data fetching causes each request to wait for the previous one to
+						finish.</li>
+					<li><strong>Impact:</strong> Dramatically increases total page load time—users wait longer to see content.</li>
+					<li><strong>Common Causes:</strong> Nested API calls, component-level fetches, poor data architecture.</li>
+				</ul>
+			
+				<aside class="notes">
+					Discuss the loading waterfall problem, emphasizing how sequential requests lead to longer load times.
+					Use the image to illustrate the concept visually.
+					https://nischithbm.medium.com/web-performance-optimizing-the-network-waterfall-8a65df932df6
+				</aside>
+			</section>
+			
+			
+			<!-- Slide 3 -->
+			<section style="font-size: 20px !important;">
+				<h2>Client-Side Data Fetching Overhead</h2>
+				<pre>
+					<code class="language-jsx">
+						import axios from "axios";
+						import { useEffect, useState } from "react";
+						
+						const ClientFetchDemo = () =&gt; {
+							const [data, setData] = useState([]);
+							const [loading, setLoading] = useState(true);
+						
+							useEffect(() =&gt; {
+								axios.get("https://reqres.in/api/unknown")
+									.then(res =&gt; setData(res.data.data))
+									.finally(() =&gt; setLoading(false));
+							}, []);
+						
+							if (loading) return &lt;p&gt;Loading...&lt;/p&gt;;
+						
+							return (
+								&lt;ul&gt;
+									{data.map(item =&gt; (
+										&lt;li key={item.id}&gt;{item.name}&lt;/li&gt;
+									))}
+								&lt;/ul&gt;
+							);
+						};
+						
+						export default ClientFetchDemo;
+							</code>
+					</pre>
+				<ul>
+					<li><strong>Slower initial loads:</strong> UI waits for JS bundle and then fetches data, delaying content display.
+					</li>
+					<li><strong>Extra network round trips:</strong> Browser loads app, then makes API calls, increasing latency.</li>
+					<li><strong>Larger JS bundles:</strong> More logic shipped to client, slowing down page load and execution.</li>
+					</li>
+				</ul>
+				<aside class="notes"> Client-side fetching offers flexibility and real-time updates, but comes with performance
+					costs—especially for first-time visitors or users on slow networks. Prefer server-side fetching for critical or
+					SEO-relevant data.
+					<li><strong>No built-in caching:</strong> Repeated fetches unless you add client-side caching solutions.</li>
+					<li><strong>SEO limitations:</strong> Content not in initial HTML, making it harder for search engines to index.
+				</aside>
+			</section>
+			
+			<!-- Slide 4 -->
+			<section style="font-size: 20px !important;">
+				<h2>JavaScript Bundle Fetching Problem</h2>
+				<img src="bundles.png" data-preview-image style="width:80%;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,0.15);margin-bottom:1em;">
+				<ul>
+					<li><strong>Large Bundles:</strong> Modern apps often ship hundreds of KBs of JS by default.</li>
+					<li><strong>Slow First Paint:</strong> Browsers must download, parse, and execute all JS before rendering UI.</li>
+					<li><strong>Performance Penalty:</strong> Increased Time to Interactive (TTI) and poor Core Web Vitals.</li>
+				</ul>
+				<aside class="notes">
+					<li><strong>Device Impact:</strong> Slower devices and networks suffer even more.</li>
+					<li><strong>Wasted Resources:</strong> Users may never use much of the code they download.</li>
+					<li><strong>Performance Penalty:</strong> Increased Time to Interactive (TTI) and poor Core Web Vitals.</li>
+					<p>
+						The JavaScript bundle fetching problem is one of the most common bottlenecks in modern web performance. When a user visits a web app, the browser often has to download a large JavaScript bundle before anything meaningful can be displayed. This bundle can easily be hundreds of kilobytes or even several megabytes, especially in single-page apps with many dependencies.
+					</p>
+					<p>
+						The problem gets worse on slow networks or older devices: not only does downloading the bundle take longer, but parsing and executing it can also be CPU-intensive. This means users may stare at a blank screen or a spinner for several seconds, leading to frustration and higher bounce rates.
+					</p>
+					<p>
+						Another issue is that much of the code in these bundles is never used in a given session. For example, a user might only visit the homepage, but still downloads all the code for the admin dashboard, checkout flow, and other features. This is wasted bandwidth and processing.
+					</p>
+					<p>
+						To address this, modern best practices include code splitting, lazy loading, and server components. By breaking the bundle into smaller chunks and only loading what's needed for the current view, we can drastically reduce initial load times and improve both perceived and actual performance.
+					</p>
+					<p>
+						Always monitor your JavaScript bundle size, use tools like Webpack Bundle Analyzer, and set performance budgets to keep your app fast and responsive.
+					</p>
+				</aside>
+			</section>
+			
+			<!-- Slide 5 -->
+			<section>
+				<h2>Loading Data...</h2>
+				<div class="spinner"></div>
+			</section>
+			
+
+			<!-- Slide 6 -->
+			<section>
+				<h2>How do we make our apps faster?</h2>
+			</section>
+
+
+		<!--Slide 7-->
+		<section style="font-size: 30px !important;">
+			<h2>One Roundtrip Per Navigation</h2>
+			<ul>
+				<li>Instead of: URL → Code → Fetch → Render</li>
+				<li>Do this: URL → [Code + Data] → Render</li>
+				<li><strong>Server knows what to send</strong> based on route</li>
+				<li>This enables <strong>faster, flicker-free navigation</strong></li>
+			</ul>
+			<br/>
+			<pre><code data-trim data-noescape>
+		/* Instead of this waterfall */
+		navigate('/dashboard') → 
+		load Dashboard.js → 
+		fetch('/api/dashboard-data')
+			</code></pre>
+		</section>
+
+		<!-- Slide 8 -->
+		<section style="font-size: 25px !important;">
+			<h2>Server Loaders: Break the Waterfall</h2>
+			<aside class="notes">
+				Server loaders flip the common SPA model — instead of fetching data on the client *after* route match, the server intercepts navigation, runs the appropriate loader, and returns data + markup in a single roundtrip.
+		
+			  These are route-aware, meaning the data required for a route is known at navigation time.
+		
+
+		    Why move the loader to the server?
+
+		    If you don’t treat the server as a black box beyond your control, 
+				the server is the natural place to put your data fetching code. 
+				On the server, you have all the levers to improve common performance problems. 
+				You often have control over latency—for example, you can move your BFF server closer to the data source. 
+				Then even inherent waterfalls will be cheap. If the data source is slow, 
+				you have ability to add cross-request caching on the server. You also have the option of 
+				dispensing with microservices entirely and moving your data layer to be in-process, like in Rails:
+				Gotchas:
+				- Loaders must stay serializable — no access to browser-only APIs.
+				- Loader APIs must be fast — users wait for them during navigation.
+				- Auth, cookies, and headers are part of the server context — misuse can lead to incorrect data or caching bugs.
+			</aside>
+		
+			<ul>
+				<li>Loaders are tied to routes — fetch route-specific data <strong>before render</strong></li>
+				<li>Executed on the server (SSR) or at navigation time (SPA)</li>
+				<li><strong>No useEffect. No extra fetch. No waterfall.</strong></li>
+			</ul>
+		
+			<pre><code data-trim data-noescape>
+		// React Router 6.4+
+		const router = createBrowserRouter([
+			{
+				path: "/invoices/:id",
+				loader: async ({ params }) => {
+					return fetch(`/api/invoices/${params.id}`);
+				},
+				element: <InvoiceView />,
+			},
+		]);
+			</code></pre>
+		
+			<pre><code data-trim data-noescape>
+		// Remix example
+		export async function loader({ params }) {
+			const invoice = await getInvoiceById(params.id);
+			return json(invoice);
+		}
+			</code></pre>
+		
+			<p><strong>Navigation triggers data + code load in one go</strong></p>
+		</section>
+		
+
+		<!-- Slide 9 -->
+		<section section style="font-size: 25px !important;">
+			<h2>React Server Components</h2>
+		
+			<ul>
+				<li><strong>Each component = its own server-side data loader</strong></li>
+				<li>Server starts rendering from the top: no client-side fetch</li>
+				<li>Data dependencies live alongside components (not centralized)</li>
+				<li>Client gets a preloaded tree — no JS waterfall</li>
+			</ul>
+		
+			<pre><code data-trim data-noescape>
+		// Server Components
+		async function PostContent({ postId }) {
+			const post = await loadPost(postId);
+			return (
+				&lt;article&gt;
+					&lt;h1&gt;{post.title}&lt;/h1&gt;
+					&lt;p&gt;{post.content}&lt;/p&gt;
+					&lt;Comments postId={postId} /&gt;
+				&lt;/article&gt;
+			);
+		}
+		
+		async function Comments({ postId }) {
+			const comments = await loadComments(postId);
+			return (
+				&lt;ul&gt;{comments.map(c =&gt; &lt;li key={c.id}&gt;{c.text}&lt;/li&gt;)}&lt;/ul&gt;
+			);
+		}
+			</code></pre>
+		
+			<p><strong>Result:</strong> Navigation triggers a single streamed tree with code + data </p>
+		
+			<aside class="notes">
+				✅ Server Components are like “co-located server loaders” — each can independently fetch data before rendering itself or its children.
+				
+				🧠 Think of this like React’s old "Container + Presentational" pattern — except containers run on the server, and presentational parts run on the client.
+		
+				🔥 Major wins:
+				- Data fetching is modular and colocated (no global loaders or API layers needed)
+				- Code is easy to reason about: no custom fetch hooks, no effect-based APIs
+				- Optimizations like server caching, edge rendering, and streaming just work
+		
+				⚠️ Caveats:
+				- Must learn the server/client boundary (`'use client'` directive)
+				- No access to browser-only APIs in server components (like `window`, `localStorage`)
+				- Server and client bundling is more complex (but handled by Next.js, etc.)
+		
+				✨ But overall: You get a clean, predictable, HTML-like mental model — and a real fix for SPA navigation waterfalls.
+			</aside>
+		</section>
+
+
+		<!-- Slide 10 -->
+		<section  style="font-size: 25px !important;">
+			<h2>Prefetching: Eliminate Perceived Latency</h2>
+		
+			<ul>
+				<li><strong>Prefetch assets and data</strong> for likely next routes</li>
+				<li>Happens on <em>hover</em>, <em>viewport entry</em>, or <em>predictive heuristics</em></li>
+				<li>Frameworks like Next.js, Remix, and React Router automate this</li>
+				<li>Preloads code <strong>and</strong> data → instant-feeling navigation</li>
+			</ul>
+		
+			<pre><code data-trim data-noescape>
+		// Next.js Link (auto prefetches on hover or visible)
+		import Link from 'next/link';
+		
+		&lt;Link href="/dashboard"&gt;Go to Dashboard&lt;/Link&gt;
+		
+		// Remix prefetch hint
+		&lt;Link to="/profile" prefetch="intent"&gt;Profile&lt;/Link&gt;
+			</code></pre>
+		
+			<p><strong>Result:</strong> Code + data already loaded by the time you click ⚡</p>
+		
+			<aside class="notes">
+				✅ Prefetching bridges the gap between click and content — it shifts loading earlier.
+		
+				- In Next.js, `<Link>` auto-prefetches the code bundle and sometimes the data (in App Router).
+				- Remix uses `<Link prefetch="intent" />` to fetch data when a user shows "intent" (e.g. hovers or focuses).
+				- You can prefetch proactively using `router.prefetch()` or custom logic too.
+		
+				🧠 The key idea: treat navigation like a read-ahead buffer — guess the user's next move and preload just enough.
+		
+				⚠️ Caveats:
+				- Over-prefetching can waste bandwidth or load stale data.
+				- Works best with good cache-control headers.
+				- Be selective: prefetch routes the user is likely to hit, not every route.
+		
+				🧩 Combined with RSC or server loaders, prefetching makes the final navigation seamless — everything is already there.
+			</aside>
+		</section>
+		
+
+		<!-- Slide 11 -->
+		<section style="font-size: 25px !important;">
+			<h2>Persistent Layouts: Don't Tear Down Everything</h2>
+		
+			<ul>
+				<li>Shared UI (e.g. navbars, sidebars) should not re-render on route change</li>
+				<!-- <li>Use <code>&lt;Outlet /&gt;</code> (React Router) or <code>layout.tsx</code> (Next.js App Router)</li> -->
+				<li>Reduces UI flicker and improves perceived speed</li>
+				<li>Preserve state (scroll, form drafts, etc.) across pages</li>
+			</ul>
+		
+			<pre><code data-trim data-noescape>
+		// React Router
+		&lt;Layout&gt;
+			&lt;Navbar /&gt;
+			&lt;Sidebar /&gt;
+			&lt;Outlet /&gt;
+		&lt;/Layout&gt;
+		
+		// Next.js App Router
+		// app/layout.tsx
+		export default function Layout({ children }) {
+			return (
+				&lt;main&gt;
+					&lt;Navbar /&gt;
+					&lt;Sidebar /&gt;
+					{children}
+				&lt;/main&gt;
+			);
+		}
+			</code></pre>
+		
+			<p><strong>Result:</strong> Navigations feel like content swaps, not full reloads ✨</p>
+		
+			<aside class="notes">
+				🧩 This is one of the lowest-effort, highest-impact changes you can make for navigation performance.
+		
+				✅ In React Router, use `<Outlet />` in a parent route so that only the child route changes.
+				✅ In Next.js, `layout.tsx` stays mounted — only the content inside updates.
+		
+				🔄 This means components like `Navbar`, global state providers, or tabs don’t remount on every click.
+		
+				🧠 Bonus: With frameworks like Remix and Next, you can also persist scroll position, form input, or in-flight mutations — making it feel *truly* like a desktop app.
+		
+				⚠️ Gotcha: Be careful about shared layout state — stale data or context bleed can happen if you assume full re-mounts.
+			</aside>
+		</section>
+		
+
+		<!-- Slide 12 -->
+		<section>
+			<h2>Fix your bundle size :)</h2>
+
+			<img src="bundle-images.webp" alt="Waterfall representing sequential loading" data-preview-image
+			style="width:70%;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,0.2);margin-bottom:1em;">
+
+		</section>
+
+		<!-- Slide 13 -->
+		<section style="font-size: 30px !important;">
+			<h2>Use Smaller Libraries</h2>
+		
+			<ul>
+				<li><strong>Swap heavy libraries</strong> with lighter alternatives</li>
+				<li>Helps reduce bundle size without refactoring logic</li>
+			</ul>
+		
+			<pre><code data-trim data-noescape>
+		// Instead of moment.js (~300KB)
+		import dayjs from 'dayjs';
+		
+		// Instead of lodash
+		import debounce from 'just-debounce-it';
+			</code></pre>
+		
+			<p><strong>Result:</strong> Smaller bundle, faster load — no effort wasted 🎯</p>
+		
+			<aside class="notes">
+				🧠 This is often the fastest win: check your bundle analyzer — you might find you're shipping 300KB just for dates.
+		
+				✅ Use libraries like:
+				- `dayjs`, `date-fns` instead of `moment.js`
+				- `just-*` utilities instead of `lodash`
+				- `clsx` instead of `classnames`
+		
+				⚠️ Watch for transitive dependencies — sometimes your own packages bring the bloat.
+		
+				📉 These swaps often reduce bundle size by 30–50KB+ in one go.
+			</aside>
+		</section>
+
+		
+		<!-- Slide 14 -->
+		<section style="font-size: 25px !important;">
+			<h2>Defer Non-Critical JavaScript</h2>
+		
+			<ul>
+				<li>Load features like analytics, chat, and widgets <strong>after paint</strong></li>
+				<li>Use <code>&lt;script defer / async&gt;</code> or load on user interaction</li>
+				<li>Next.js: use <code>&lt;Script strategy="lazyOnload" /&gt;</code></li>
+			</ul>
+		
+			<pre><code data-trim data-noescape>
+		// Next.js Script defer example
+		import Script from 'next/script';
+		
+		&lt;Script
+			src="https://analytics.example.com/script.js"
+			strategy="lazyOnload"
+		/&gt;
+			</code></pre>
+		
+			<p><strong>Result:</strong> Critical path stays light, TTI improves ⚡</p>
+		
+			<aside class="notes">
+				✅ Not everything needs to block rendering — defer anything not essential to first paint or first interaction.
+		
+				- Lazy load analytics, feedback widgets, chatbots, or third-party embeds.
+				- Use `next/script` with `strategy="lazyOnload"` to load after `onload`.
+				- Avoid injecting scripts directly in custom components unless necessary — it breaks streaming and increases hydration time.
+		
+				⚠️ Measure performance after deferring — some scripts might expect early DOM access or user state.
+		
+				✨ Best paired with bundle splitting and RSC to keep initial JS footprint minimal.
+			</aside>
+		</section>
+
+		<!-- Slide 14 -->
+		<section style="font-size: 25px !important;">
+			<h2>Set Performance Budgets</h2>
+			<ul>
+				<li><strong>What is it?</strong> A performance budget sets thresholds for metrics like JS size, TTI, LCP</li>
+				<li>Helps catch regressions early in CI/CD pipelines</li>
+				<li>Makes performance a shared goal across teams</li>
+			</ul>
+		
+			<pre><code data-trim data-noescape>
+		// Webpack Plugin Example
+		new BundleAnalyzerPlugin({
+			generateStatsFile: true,
+			statsOptions: { source: false },
+		})
+			</code></pre>
+		
+			<p><strong>Result:</strong> Prevent slow pages before they reach production 🚨</p>
+		</section>
+		
+
+
+		<section style="font-size: 30px !important;">
+			<h2>Build for Speed by Default 🚀</h2>
+			<ul>
+				<li>Optimize for <strong>minimal roundtrips</strong> per navigation</li>
+				<li>Use <strong>server-side data fetching</strong> where possible</li>
+				<li>Implement <strong>prefetching</strong> and <strong>persistent UI patterns</strong></li>
+				<li>Keep JavaScript <strong>small, efficient, and deferred</strong></li>
+				<li><strong>Make performance a culture</strong>, not just a one-time fix</li>
+			</ul>
+			<p><strong>Fast apps = happy users = better business 💸</strong></p>
+		</section>
+		
+	</div>
+	</div>
+
+
+	<style>
+			.spinner {
+				width: 90px;
+				height: 90px;
+				border: 4px solid #ccc;
+				border-top: 4px solid #007bff;
+				border-radius: 50%;
+				animation: spin 1s linear infinite;
+				margin: 40px auto;
+			}
+		
+			@keyframes spin {
+				to {
+					transform: rotate(360deg);
+				}
+			}
+	</style>
+		
+	<script src="dist/reveal.js"></script>
+	<script src="plugin/notes/notes.js"></script>
+	<script src="plugin/markdown/markdown.js"></script>
+	<script src="plugin/highlight/highlight.js"></script>
+	<script>
+		// More info about initialization & config:
+		// - https://revealjs.com/initialization/
+		// - https://revealjs.com/config/
+		Reveal.initialize({
+			hash: true,
+
+			// Learn about plugins: https://revealjs.com/plugins/
+			plugins: [RevealMarkdown, RevealHighlight, RevealNotes]
+		});
+			</script>
+	</body>
+
+</html>
