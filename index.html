@@ -192,13 +192,13 @@
 				you have ability to add cross-request caching on the server. You also have the option of 
 				dispensing with microservices entirely and moving your data layer to be in-process, like in Rails:
 				Gotchas:
-				- Loaders must stay serializable — no access to browser-only APIs.
-				- Loader APIs must be fast — users wait for them during navigation.
+				- Loaders must stay serializable - no access to browser-only APIs.
+				- Loader APIs must be fast - users wait for them during navigation.
 				- Auth, cookies, and headers are part of the server context — misuse can lead to incorrect data or caching bugs.
 			</aside>
 		
 			<ul>
-				<li>Loaders are tied to routes — fetch route-specific data <strong>before render</strong></li>
+				<li>Loaders are tied to routes - fetch route-specific data <strong>before render</strong></li>
 				<li>Executed on the server (SSR) or at navigation time (SPA)</li>
 				<li><strong>No useEffect. No extra fetch. No waterfall.</strong></li>
 			</ul>
@@ -236,7 +236,7 @@
 				<li><strong>Each component = its own server-side data loader</strong></li>
 				<li>Server starts rendering from the top: no client-side fetch</li>
 				<li>Data dependencies live alongside components (not centralized)</li>
-				<li>Client gets a preloaded tree — no JS waterfall</li>
+				<li>Client gets a preloaded tree = no JS waterfall</li>
 			</ul>
 		
 			<pre><code data-trim data-noescape>
