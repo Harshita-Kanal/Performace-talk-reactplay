@@ -1,6 +1,6 @@
-## Optimizing Navigation Performance in web apps
+# Optimizing Navigation Performance in web apps
 
-Access slides here: https://performace-talk-reactplay.vercel.app/
+**Access slides here: https://performace-talk-reactplay.vercel.app/**
 
 ---
 
